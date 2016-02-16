@@ -28,7 +28,7 @@ class ObligationAdmin(admin.ModelAdmin):
 
 
 class DeducedAdmin(admin.ModelAdmin):
-    list_display = ['affiliate_id', 'account' 'year', 'month', 'amount']
+    list_display = ['affiliate_id', 'account', 'year', 'month', 'amount']
     search_fields = ['affiliate__id', ]
     ordering = ['affiliate_id', 'account_id', 'year', 'month']
 
