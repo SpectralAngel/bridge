@@ -12,8 +12,15 @@
 # [app_label]'
 # into your database.
 from __future__ import unicode_literals
+
+from decimal import Decimal
 from django.db import models
+from django.db.models.aggregates import Min, Sum
+from django.db.models.functions import Coalesce
+from django.utils import timezone
 from django.utils.encoding import python_2_unicode_compatible
+
+Zero = Decimal()
 
 
 @python_2_unicode_compatible
@@ -26,10 +33,10 @@ class Account(models.Model):
         db_table = 'account'
 
     def __str__(self):
-
         return self.name
 
 
+@python_2_unicode_compatible
 class Affiliate(models.Model):
     first_name = models.CharField(max_length=50)
     last_name = models.CharField(max_length=50)
@@ -66,6 +73,14 @@ class Affiliate(models.Model):
     class Meta:
         managed = False
         db_table = 'affiliate'
+
+    def __str__(self):
+
+        return _('{0} {1} {2}').format(
+            self.id,
+            self.first_name,
+            self.last_name
+        )
 
 
 class Alquiler(models.Model):
@@ -171,7 +186,6 @@ class Banco(models.Model):
         db_table = 'banco'
 
     def __str__(self):
-
         return '{0}'.format(self.nombre)
 
 
@@ -197,7 +211,6 @@ class BankReport(models.Model):
         db_table = 'bank_report'
 
     def __str__(self):
-
         return '{0}'.format(self.banco.nombre)
 
 
@@ -301,6 +314,105 @@ class CuotaTable(models.Model):
         managed = False
         db_table = 'cuota_table'
         unique_together = (('affiliate', 'year'),)
+
+    def january(self):
+        amount = self.calculate_amount(0)
+        if not self.month1:
+            return Zero
+        return amount
+
+    def february(self):
+        amount = self.calculate_amount(1)
+        if not self.month2:
+            return Zero
+        return amount
+
+    def march(self):
+        amount = self.calculate_amount(2)
+        if not self.month3:
+            return Zero
+        return amount
+
+    def april(self):
+        amount = self.calculate_amount(3)
+        if not self.month4:
+            return Zero
+        return amount
+
+    def may(self):
+        amount = self.calculate_amount(4)
+        if not self.month5:
+            return Zero
+        return amount
+
+    def june(self):
+        amount = self.calculate_amount(5)
+        if not self.month6:
+            return Zero
+        return amount
+
+    def july(self):
+        amount = self.calculate_amount(6)
+        if not self.month7:
+            return Zero
+        return amount
+
+    def august(self):
+        amount = self.calculate_amount(7)
+        if not self.month8:
+            return Zero
+        return amount
+
+    def september(self):
+        amount = self.calculate_amount(8)
+        if not self.month9:
+            return Zero
+        return amount
+
+    def octuber(self):
+        amount = self.calculate_amount(9)
+        if not self.month10:
+            return Zero
+        return amount
+
+    def november(self):
+        amount = self.calculate_amount(10)
+        if not self.month11:
+            return Zero
+        return amount
+
+    def december(self):
+        amount = self.calculate_amount(11)
+        if not self.month12:
+            return Zero
+        return amount
+
+    def total(self):
+        """
+        Calulates the total amount that has been payed this year
+        :return:
+        """
+        return sum(
+                self.calculate_amount(n) for n in range(12)
+                if getattr(self, "month{0}".format(n + 1))
+        )
+
+    def calculate_amount(self, month):
+        """
+        Calculates the amount a month has to get payed
+        :param month: the month we need the calculation for
+        :return: the complete amount
+        """
+        amount = Zero
+
+        if self.affiliate.cotizacion.normal:
+            amount = obligation_map[self.year][month]['active']
+        if self.affiliate.cotizacion.jubilados:
+            amount = obligation_map[self.year][month]['retired']
+        if self.affiliate.cotizacion.alternate:
+            amount = obligation_map[self.year][month]['alternate']
+
+        return amount
 
 
 class DeduccionBancaria(models.Model):
@@ -1039,3 +1151,26 @@ class VisitIdentity(models.Model):
     class Meta:
         managed = False
         db_table = 'visit_identity'
+
+
+obligation_map = None
+
+
+def build_obligation_map():
+    global obligation_map
+    obligation_map = {}
+    min_year = Obligation.objects.aggregate(minimun=Min('year'))['minimun']
+    for year in range(min_year, timezone.now().year):
+        obligation_map[year] = []
+        for n in range(1, 13):
+            obligations = Obligation.objects.filter(
+                    year=year,
+                    month=n
+            ).aggregate(
+                    active=Coalesce(Sum('amount'), Zero),
+                    retired=Sum('inprema'),
+                    compliment=Sum('compliment'),
+                    amount_compliment=Coalesce(Sum('amount_compliment'), Zero),
+                    alternate=Coalesce(Sum('alternate'), Zero),
+            )
+            obligation_map[year].append(obligations)
