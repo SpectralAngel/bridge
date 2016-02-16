@@ -265,7 +265,7 @@ class Cotizacion(models.Model):
 
     def __str__(self):
 
-        return self.normal
+        return self.nombre
 
 
 class CotizacionTgUser(models.Model):
