@@ -2,7 +2,7 @@ from __future__ import unicode_literals
 from django.contrib import admin
 
 # Register your models here.
-from bridge.models import BankReport, BankAccount, Obligation
+from bridge import models
 
 
 class BankReportAdmin(admin.ModelAdmin):
@@ -27,6 +27,12 @@ class ObligationAdmin(admin.ModelAdmin):
     ordering = ['year', 'month']
 
 
-admin.site.register(BankReport, BankReportAdmin)
-admin.site.register(BankAccount, BankAccountAdmin)
-admin.site.register(Obligation, ObligationAdmin)
+class DeducedAdmin(admin.ModelAdmin):
+    list_display = ['affiliate_id', 'account' 'year', 'month', 'amount']
+    search_fields = ['affiliate__id', ]
+    ordering = ['affiliate_id', 'account_id', 'year', 'month']
+
+
+admin.site.register(models.BankReport, BankReportAdmin)
+admin.site.register(models.BankAccount, BankAccountAdmin)
+admin.site.register(models.Obligation, ObligationAdmin)
