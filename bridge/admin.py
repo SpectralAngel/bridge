@@ -36,3 +36,4 @@ class DeducedAdmin(admin.ModelAdmin):
 admin.site.register(models.BankReport, BankReportAdmin)
 admin.site.register(models.BankAccount, BankAccountAdmin)
 admin.site.register(models.Obligation, ObligationAdmin)
+admin.site.register(models.Deduced, DeducedAdmin)
