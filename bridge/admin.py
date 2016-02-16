@@ -31,7 +31,6 @@ class DeducedAdmin(admin.ModelAdmin):
     list_display = ['affiliate', 'account', 'cotizacion', 'year', 'month',
                     'amount']
     search_fields = ['affiliate__id', ]
-    ordering = ['affiliate_id', 'account_id', 'year', 'month']
 
     def get_queryset(self, request):
         return super(DeducedAdmin, self).get_queryset(request).select_related(

@@ -438,13 +438,13 @@ class DeduccionBancaria(models.Model):
 
 
 class Deduced(models.Model):
-    affiliate = models.ForeignKey(Affiliate)
+    affiliate = models.ForeignKey(Affiliate, blank=True, null=True)
     amount = models.DecimalField(max_digits=10, decimal_places=2)
-    account = models.ForeignKey(Account)
+    account = models.ForeignKey(Account, blank=True, null=True)
     month = models.IntegerField()
     year = models.IntegerField()
     detail = models.CharField(max_length=150, blank=True, null=True)
-    cotizacion = models.ForeignKey(Cotizacion)
+    cotizacion = models.ForeignKey(Cotizacion, blank=True, null=True)
 
     class Meta:
         managed = False
