@@ -2,7 +2,7 @@ from __future__ import unicode_literals
 from django.contrib import admin
 
 # Register your models here.
-from bridge.models import BankReport, BankAccount
+from bridge.models import BankReport, BankAccount, Obligation
 
 
 class BankReportAdmin(admin.ModelAdmin):
@@ -20,5 +20,13 @@ class BankAccountAdmin(admin.ModelAdmin):
         return obj.bank_report.year
 
 
+class ObligationAdmin(admin.ModelAdmin):
+    list_display = ['year', 'month', 'amount', 'inprema', 'amount_compliment',
+                    'compliment', 'alternate']
+    search_fields = ['year', 'month']
+    ordering = ['year', 'month']
+
+
 admin.site.register(BankReport, BankReportAdmin)
 admin.site.register(BankAccount, BankAccountAdmin)
+admin.site.register(Obligation, ObligationAdmin)
