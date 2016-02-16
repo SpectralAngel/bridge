@@ -444,7 +444,7 @@ class Deduced(models.Model):
     month = models.IntegerField()
     year = models.IntegerField()
     detail = models.CharField(max_length=150, blank=True, null=True)
-    cotizacion_id = models.IntegerField(blank=True, null=True)
+    cotizacion = models.ForeignKey(Cotizacion)
 
     class Meta:
         managed = False
