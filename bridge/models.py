@@ -250,6 +250,7 @@ class CobroBancarioBanhcafe(models.Model):
         db_table = 'cobro_bancario_banhcafe'
 
 
+@python_2_unicode_compatible
 class Cotizacion(models.Model):
     nombre = models.CharField(max_length=50, blank=True, null=True)
     jubilados = models.IntegerField()
@@ -261,6 +262,10 @@ class Cotizacion(models.Model):
     class Meta:
         managed = False
         db_table = 'cotizacion'
+
+    def __str__(self):
+
+        return self.normal
 
 
 class CotizacionTgUser(models.Model):
