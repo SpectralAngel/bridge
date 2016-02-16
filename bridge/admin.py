@@ -28,7 +28,7 @@ class ObligationAdmin(admin.ModelAdmin):
 
 
 class DeducedAdmin(admin.ModelAdmin):
-    list_display = ['affiliate_id', 'account', 'cotizacion', 'year', 'month',
+    list_display = ['affiliate', 'account', 'cotizacion', 'year', 'month',
                     'amount']
     search_fields = ['affiliate__id', ]
     ordering = ['affiliate_id', 'account_id', 'year', 'month']
@@ -41,7 +41,22 @@ class DeducedAdmin(admin.ModelAdmin):
         )
 
 
+class DeduccionBancariaAdmin(admin.ModelAdmin):
+    list_display = ['affiliate', 'account', 'banco', 'year', 'month',
+                    'amount']
+    search_fields = ['affiliate__id', ]
+    ordering = ['affiliate_id', 'account_id', 'year', 'month']
+
+    def get_queryset(self, request):
+        return super(DeduccionBancariaAdmin, self).get_queryset(request).select_related(
+                'affiliate',
+                'account',
+                'banco'
+        )
+
+
 admin.site.register(models.BankReport, BankReportAdmin)
 admin.site.register(models.BankAccount, BankAccountAdmin)
 admin.site.register(models.Obligation, ObligationAdmin)
 admin.site.register(models.Deduced, DeducedAdmin)
+admin.site.register(models.DeduccionBancaria, DeduccionBancariaAdmin)
