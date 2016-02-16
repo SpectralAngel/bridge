@@ -49,7 +49,7 @@ class DeduccionBancariaAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request):
         return super(DeduccionBancariaAdmin, self).get_queryset(request).select_related(
-                'affiliate',
+                'afiliado',
                 'account',
                 'banco'
         )
