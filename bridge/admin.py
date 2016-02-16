@@ -21,8 +21,8 @@ class BankAccountAdmin(admin.ModelAdmin):
 
 
 class ObligationAdmin(admin.ModelAdmin):
-    list_display = ['year', 'month', 'amount', 'inprema', 'amount_compliment',
-                    'compliment', 'alternate']
+    list_display = ['year', 'month', 'amount', 'inprema', 'inprema_compliment',
+                    'amount_compliment', 'alternate']
     search_fields = ['year', 'month']
     ordering = ['year', 'month']
 
