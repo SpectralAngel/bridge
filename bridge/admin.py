@@ -42,10 +42,10 @@ class DeducedAdmin(admin.ModelAdmin):
 
 
 class DeduccionBancariaAdmin(admin.ModelAdmin):
-    list_display = ['affiliate', 'account', 'banco', 'year', 'month',
+    list_display = ['afiliado', 'account', 'banco', 'year', 'month',
                     'amount']
-    search_fields = ['affiliate__id', ]
-    ordering = ['affiliate_id', 'account_id', 'year', 'month']
+    search_fields = ['afiliado__id', ]
+    ordering = ['afiliado_id', 'account_id', 'year', 'month']
 
     def get_queryset(self, request):
         return super(DeduccionBancariaAdmin, self).get_queryset(request).select_related(
