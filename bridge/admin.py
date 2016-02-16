@@ -36,7 +36,8 @@ class DeducedAdmin(admin.ModelAdmin):
     def get_queryset(self, request):
         return super(DeducedAdmin, self).get_queryset(request).select_related(
                 'affiliate',
-                'account'
+                'account',
+                'cotizacion'
         )
 
 
