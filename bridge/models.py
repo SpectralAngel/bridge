@@ -311,7 +311,7 @@ class AutoSeguro(models.Model, PeriodBased):
                 and self.affiliate.jubilated is not None:
 
             if self.affiliate.jubilated.year < self.year:
-                amount = obligation_map[self.year][month]['inprema_compliment']
+                amount = obligation_map[self.year][month]['compliment']
 
             elif self.affiliate.jubilated.year == self.year:
                 if month < self.affiliate.jubilated.month:
@@ -320,7 +320,7 @@ class AutoSeguro(models.Model, PeriodBased):
                         amount += amount_jubilated
 
                 if month >= self.affiliate.jubilated.month:
-                    amount_jubilated = obligation_map[self.year][month]['inprema_compliment']
+                    amount_jubilated = obligation_map[self.year][month]['compliment']
                     if amount_jubilated is not None:
                         amount += amount_jubilated
 
