@@ -1174,8 +1174,8 @@ def build_obligation_map():
                     month=n
             ).aggregate(
                     active=Coalesce(Sum('amount'), Zero),
-                    retired=Sum('inprema'),
-                    compliment=Sum('inprema_compliment'),
+                    retired=Coalesce(Sum('inprema'), Zero),
+                    compliment=Coalesce(Sum('inprema_compliment'), Zero),
                     amount_compliment=Coalesce(Sum('amount_compliment'), Zero),
                     alternate=Coalesce(Sum('alternate'), Zero),
             )
