@@ -76,11 +76,10 @@ class Affiliate(models.Model):
         db_table = 'affiliate'
 
     def __str__(self):
-
         return _('{0} {1} {2}').format(
-            self.id,
-            self.first_name,
-            self.last_name
+                self.id,
+                self.first_name,
+                self.last_name
         )
 
 
@@ -264,7 +263,6 @@ class Cotizacion(models.Model):
         db_table = 'cotizacion'
 
     def __str__(self):
-
         return self.nombre
 
 
@@ -1167,16 +1165,16 @@ def build_obligation_map():
     obligation_map = {}
     min_year = Obligation.objects.aggregate(minimun=Min('year'))['minimun']
     for year in range(min_year, timezone.now().year):
-        obligation_map[year] = []
-        for n in range(1, 13):
-            obligations = Obligation.objects.filter(
+        obligation_map[year] = [
+            Obligation.objects.filter(
                     year=year,
                     month=n
             ).aggregate(
-                    active=Coalesce(Sum('amount'), Zero),
-                    retired=Coalesce(Sum('inprema'), Zero),
-                    compliment=Coalesce(Sum('inprema_compliment'), Zero),
-                    amount_compliment=Coalesce(Sum('amount_compliment'), Zero),
-                    alternate=Coalesce(Sum('alternate'), Zero),
+                    active=Sum('amount'),
+                    retired=Sum('inprema'),
+                    compliment=Sum('inprema_compliment'),
+                    amount_compliment=Sum('amount_compliment'),
+                    alternate=Sum('alternate'),
             )
-            obligation_map[year].append(obligations)
+            for n in range(1, 13)
+            ]
