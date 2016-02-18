@@ -365,7 +365,7 @@ class CuotaTable(models.Model):
         if not getattr(self, 'month{0}'.format(month)):
             return Zero
 
-        return self.calculate_amount(month)
+        return self.calculate_amount(month - 1)
 
     def debt_month(self, month, period=None):
 
@@ -381,7 +381,7 @@ class CuotaTable(models.Model):
         if getattr(self, 'month{0}'.format(month)):
             return Zero
 
-        return self.calculate_amount(month)
+        return self.calculate_amount(month - 1)
 
     def january(self):
         amount = self.calculate_amount(0)
