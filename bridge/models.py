@@ -411,8 +411,18 @@ class CuotaTable(models.Model):
 
         if self.affiliate.cotizacion.normal:
             amount = obligation_map[self.year][month]['active']
+
         if self.affiliate.cotizacion.jubilados:
-            amount = obligation_map[self.year][month]['retired']
+            if self.affiliate.jubilated.year > self.year:
+                amount = obligation_map[self.year][month]['active']
+            elif self.affiliate.jubilated.year == self.year:
+                if month < self.affiliate.jubilated.month:
+                    amount = obligation_map[self.year][month]['active']
+                else:
+                    amount = obligation_map[self.year][month]['retired']
+            elif self.affiliate.jubilated.year < self.year:
+                amount = obligation_map[self.year][month]['retired']
+
         if self.affiliate.cotizacion.alternate:
             amount = obligation_map[self.year][month]['alternate']
 
