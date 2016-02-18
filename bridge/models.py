@@ -62,7 +62,7 @@ class PeriodBased(object):
             end = 1
 
         return start, end
-    
+
     def calculate_amount(self, month):
         """
         Calculates the amount a month has to get payed
@@ -304,24 +304,34 @@ class AutoSeguro(models.Model, PeriodBased):
         :param month: the month we need the calculation for
         :return: the complete amount
         """
+
         amount = Zero
 
-        if self.affiliate.cotizacion.normal:
-            amount = obligation_map[self.year][month]['active']
+        if self.affiliate.cotizacion.jubilados \
+                and self.affiliate.jubilated is not None:
 
-        if self.affiliate.cotizacion.jubilados:
-            if self.affiliate.jubilated.year > self.year:
-                amount = obligation_map[self.year][month]['active']
+            if self.affiliate.jubilated.year < self.year:
+                amount = obligation_map[self.year][month]['inprema_compliment']
+
             elif self.affiliate.jubilated.year == self.year:
                 if month < self.affiliate.jubilated.month:
-                    amount = obligation_map[self.year][month]['active']
-                else:
-                    amount = obligation_map[self.year][month]['retired']
-            elif self.affiliate.jubilated.year < self.year:
-                amount = obligation_map[self.year][month]['retired']
+                    amount_jubilated = obligation_map[self.year][month]['amount_compliment']
+                    if amount_jubilated is not None:
+                        amount += amount_jubilated
 
-        if self.affiliate.cotizacion.alternate:
-            amount = obligation_map[self.year][month]['alternate']
+                if month >= self.affiliate.jubilated.month:
+                    amount_jubilated = obligation_map[self.year][month]['inprema_compliment']
+                    if amount_jubilated is not None:
+                        amount += amount_jubilated
+
+            elif self.affiliate.jubilated.year > self.year:
+                amount = obligation_map[self.year][month]['amount_compliment']
+
+        else:
+            amount = obligation_map[self.year][month]['amount_compliment']
+
+        if amount is None:
+            return Zero
 
         return amount
 
