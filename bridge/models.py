@@ -247,6 +247,12 @@ class Affiliate(models.Model):
     def total_debt(self):
         return sum(cuota.debt() for cuota in self.cuotatable_set.all())
 
+    def total_insurance(self):
+        return sum(cuota.total() for cuota in self.autoseguro_set.all())
+
+    def total_insurance_debt(self):
+        return sum(cuota.debt() for cuota in self.autoseguro_set.all())
+
 
 class Alquiler(models.Model):
     cubiculo = models.ForeignKey('Cubiculo', blank=True, null=True)
