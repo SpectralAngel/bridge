@@ -301,6 +301,33 @@ class AutoSeguro(models.Model, PeriodBased):
         db_table = 'auto_seguro'
         unique_together = (('affiliate', 'year'),)
 
+    def calculate_amount(self, month):
+        """
+        Calculates the amount a month has to get payed
+        :param month: the month we need the calculation for
+        :return: the complete amount
+        """
+        amount = Zero
+
+        if self.affiliate.cotizacion.normal:
+            amount = obligation_map[self.year][month]['active']
+
+        if self.affiliate.cotizacion.jubilados:
+            if self.affiliate.jubilated.year > self.year:
+                amount = obligation_map[self.year][month]['active']
+            elif self.affiliate.jubilated.year == self.year:
+                if month < self.affiliate.jubilated.month:
+                    amount = obligation_map[self.year][month]['active']
+                else:
+                    amount = obligation_map[self.year][month]['retired']
+            elif self.affiliate.jubilated.year < self.year:
+                amount = obligation_map[self.year][month]['retired']
+
+        if self.affiliate.cotizacion.alternate:
+            amount = obligation_map[self.year][month]['alternate']
+
+        return amount
+
 
 class Autorizacion(models.Model):
     affiliate = models.ForeignKey(Affiliate, blank=True, null=True)
