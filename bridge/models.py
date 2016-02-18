@@ -460,15 +460,15 @@ class CuotaTable(models.Model):
         Calulates the total amount that has been payed this year
         :return:
         """
-        inicio, fin = self.periodo()
-        periodo = range(inicio, fin)
-        return sum(self.month_payment(mes, periodo) for mes in periodo)
+        inicio, fin = self.period()
+        period = range(inicio, fin)
+        return sum(self.month_payment(month, period) for month in period)
 
     def debt(self):
 
-        inicio, fin = self.periodo()
-        periodo = range(inicio, fin)
-        return sum(self.debt_month(mes, periodo) for mes in periodo)
+        inicio, fin = self.period()
+        period = range(inicio, fin)
+        return sum(self.debt_month(month, period) for month in period)
 
     def calculate_amount(self, month):
         """
