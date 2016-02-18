@@ -84,11 +84,11 @@ class Affiliate(models.Model):
 
     def total_cuota(self):
 
-        return sum(cuota.total() for cuota in self.cuotatable_set.all)
+        return sum(cuota.total() for cuota in self.cuotatable_set.all())
 
     def total_debt(self):
 
-        return sum(cuota.debt() for cuota in self.cuotatable_set.all)
+        return sum(cuota.debt() for cuota in self.cuotatable_set.all())
 
 
 class Alquiler(models.Model):
