@@ -13,7 +13,6 @@
 # into your database.
 from __future__ import unicode_literals
 
-from abc import abstractmethod
 from decimal import Decimal
 
 from django.db import models
@@ -781,6 +780,15 @@ class Loan(models.Model):
     class Meta:
         managed = False
         db_table = 'loan'
+
+    def net(self):
+        return self.capital - self.deduced()
+
+    def deduced(self):
+
+        return self.deduction_set.aggregate(
+                total=Sum('amount')
+        )['total']
 
 
 class Logger(models.Model):
