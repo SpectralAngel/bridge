@@ -13,7 +13,7 @@
 # into your database.
 from __future__ import unicode_literals
 
-from abc import abstractmethod, ABCMeta
+from abc import abstractmethod
 from decimal import Decimal
 
 from django.db import models
@@ -38,7 +38,7 @@ class Account(models.Model):
         return self.name
 
 
-class PeriodBased(metaclass=ABCMeta):
+class PeriodBased(object):
     def period(self, retrasada=False, gracia=False):
 
         (start, end) = (1, 13)
@@ -62,8 +62,7 @@ class PeriodBased(metaclass=ABCMeta):
             end = 1
 
         return start, end
-
-    @abstractmethod
+    
     def calculate_amount(self, month):
         """
         Calculates the amount a month has to get payed
@@ -243,11 +242,9 @@ class Affiliate(models.Model):
         )
 
     def total_cuota(self):
-
         return sum(cuota.total() for cuota in self.cuotatable_set.all())
 
     def total_debt(self):
-
         return sum(cuota.debt() for cuota in self.cuotatable_set.all())
 
 
