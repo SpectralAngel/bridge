@@ -82,6 +82,14 @@ class Affiliate(models.Model):
                 self.last_name
         )
 
+    def total_cuota(self):
+
+        return sum(cuota.total() for cuota in self.cuotatable_set.all)
+
+    def total_debt(self):
+
+        return sum(cuota.debt() for cuota in self.cuotatable_set.all)
+
 
 class Alquiler(models.Model):
     cubiculo = models.ForeignKey('Cubiculo', blank=True, null=True)
@@ -400,6 +408,12 @@ class CuotaTable(models.Model):
                 self.calculate_amount(n) for n in range(12)
                 if getattr(self, "month{0}".format(n + 1))
         )
+
+    def debt(self):
+
+        complete = sum(self.calculate_amount(n) for n in range(12))
+
+        return complete - self.total()
 
     def calculate_amount(self, month):
         """
