@@ -327,6 +327,62 @@ class CuotaTable(models.Model):
         db_table = 'cuota_table'
         unique_together = (('affiliate', 'year'),)
 
+    def period(self, retrasada=False, gracia=False):
+
+        (start, end) = (1, 13)
+        now = timezone.now()
+        if self.affiliate.joined.year == self.year:
+            start = self.affiliate.joined.month
+
+        if self.year == now.year:
+            if retrasada:
+                end = now.month
+            else:
+                if gracia:
+                    end = now.month - 4
+                else:
+                    end = now.month + 1
+        else:
+            if gracia:
+                end = 8
+
+        if end <= 0:
+            end = 1
+
+        return start, end
+
+    def month_payment(self, month, period=None):
+
+        """Muestra la cantidad pagada en el mes especificado"""
+
+        if period is None:
+            inicio, fin = self.period()
+            period = range(inicio, fin)
+
+        if month not in period:
+            return Zero
+
+        if not getattr(self, 'month{0}'.format(month)):
+            return Zero
+
+        return self.calculate_amount(month)
+
+    def debt_month(self, month, period=None):
+
+        """Muestra la cantidad debida en el mes especificado"""
+
+        if period is None:
+            inicio, fin = self.period()
+            period = range(inicio, fin)
+
+        if month not in period:
+            return Zero
+
+        if getattr(self, 'month{0}'.format(month)):
+            return Zero
+
+        return self.calculate_amount(month)
+
     def january(self):
         amount = self.calculate_amount(0)
         if not self.month1:
@@ -404,16 +460,15 @@ class CuotaTable(models.Model):
         Calulates the total amount that has been payed this year
         :return:
         """
-        return sum(
-                self.calculate_amount(n) for n in range(12)
-                if getattr(self, "month{0}".format(n + 1))
-        )
+        inicio, fin = self.periodo()
+        periodo = range(inicio, fin)
+        return sum(self.month_payment(mes, periodo) for mes in periodo)
 
     def debt(self):
 
-        complete = sum(self.calculate_amount(n) for n in range(12))
-
-        return complete - self.total()
+        inicio, fin = self.periodo()
+        periodo = range(inicio, fin)
+        return sum(self.debt_month(mes, periodo) for mes in periodo)
 
     def calculate_amount(self, month):
         """
