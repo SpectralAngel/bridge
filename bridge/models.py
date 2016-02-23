@@ -1303,7 +1303,7 @@ def build_obligation_map():
     global obligation_map
     obligation_map = {}
     min_year = Obligation.objects.aggregate(minimun=Min('year'))['minimun']
-    for year in range(min_year, timezone.now().year):
+    for year in range(min_year, timezone.now().year + 1):
         obligation_map[year] = [
             Obligation.objects.filter(
                     year=year,
