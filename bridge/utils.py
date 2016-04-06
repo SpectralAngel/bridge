@@ -1,8 +1,12 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
+
+from decimal import Decimal
+
 from django.utils import timezone
 
-from bridge.models import Zero
+Zero = Decimal()
+dot01 = Decimal(0.01)
 
 
 class PeriodBased(object):
@@ -69,6 +73,22 @@ class PeriodBased(object):
             return Zero
 
         return self.calculate_amount(month - 1)
+
+    def delayed(self):
+
+        if self.affiliate.joined is None:
+            return Zero
+
+        """Obtiene el primer mes en el que no se haya efectuado un pago en las
+        aportaciones.
+        """
+
+        inicio, fin = self.period(retrasada=True)
+        for n in range(inicio, fin):
+            if not getattr(self, 'month{0}'.format(n)):
+                return n
+
+        return Zero
 
     class Meta:
         managed = False

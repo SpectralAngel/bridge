@@ -13,6 +13,8 @@
 # into your database.
 from __future__ import unicode_literals
 
+import calendar
+import copy
 from decimal import Decimal
 
 from django.db import models
@@ -21,9 +23,7 @@ from django.utils import timezone
 from django.utils.encoding import python_2_unicode_compatible
 from django.utils.translation import ugettext_lazy as _
 
-from bridge.utils import PeriodBased
-
-Zero = Decimal()
+from bridge.utils import PeriodBased, Zero, dot01
 
 
 @python_2_unicode_compatible
@@ -79,9 +79,9 @@ class Affiliate(models.Model):
 
     def __str__(self):
         return _('{0} {1} {2}').format(
-                self.id,
-                self.first_name,
-                self.last_name
+            self.id,
+            self.first_name,
+            self.last_name
         )
 
     def total_cuota(self):
@@ -104,35 +104,152 @@ class Affiliate(models.Model):
 
     def get_cuota(self, day=timezone.now()):
 
-        """Obtiene la cuota de aportación que el :class:`Affiliate` debera pagar
-        en el mes actual"""
+        """
+        Calculates the amount a month has to get payed
+        :param day:
+        :return: the complete amount
+        """
+        amount = Zero
 
-        obligations = Obligation.selectBy(month=day.month, year=day.year)
-
-        if self.cotizacion.jubilados and self.cotizacion.alternate:
-            return obligations.sum('inprema_compliment')
-
-        obligation = Zero
         if self.cotizacion.normal:
-            o = obligations.sum('amount')
-            if o is None:
-                o = Decimal()
-            obligation += o
+            amount = obligation_map[day.year][day.month]['active']
 
         if self.cotizacion.jubilados:
-            o = obligations.sum('inprema')
-            if o is None:
-                o = Decimal()
-            obligation += o
+            if self.jubilated.year > self.year:
+                amount = obligation_map[day.year][day.month]['active']
+            elif self.jubilated.year == day.year:
+                if day.month < self.jubilated.month:
+                    amount = obligation_map[day.year][day.month]['active']
+                else:
+                    amount = obligation_map[self.year][day.month]['retired']
+            elif self.jubilated.year < self.year:
+                amount = obligation_map[self.year][day.month]['retired']
 
-        if self.cotizacion.alternate:
-            o = obligations.sum('alternate')
-            if o is None:
-                o = Decimal()
-            obligation += o
+        if self.affiliate.cotizacion.alternate:
+            amount = obligation_map[day.year][day.month]['alternate']
 
-        return obligation
+        return amount
 
+    def get_bank_cuota(self, day=timezone.now()):
+
+        """Obtiene la cuota de aportación que el :class:`Affiliate` debera pagar
+        en el mes actual"""
+        amount = obligation_map[day.year][day.month]['active']
+        if self.cotizacion.bank_main:
+            if self.cotizacion.jubilados:
+                amount = obligation_map[day.year][day.month]['compliment'] + \
+                         obligation_map[day.year][day.month]['retired']
+
+        else:
+            if self.cotizacion.jubilados:
+                amount = obligation_map[day.year][day.month]['compliment']
+
+            if self.cotizacion.alternate:
+                amount = obligation_map[day.year][day.month]['amount_compliment']
+
+        return amount
+
+    def pagar(self, dia, acreditacion, monto, medio, cuenta_colegiacion=None,
+              cuenta_prestamo=None, cuenta_excedente=None, colegiacion=True,
+              banco=True):
+        """
+        Efectua el pago mensual a las diversas obligaciones que necesitan pago
+        :param cuenta_colegiacion:
+        :param dia: El dia en que fue pagada la deduccion
+        :param acreditacion: el día en el que se realizará la acreditación del
+                             pago.
+        :param monto: La cantidad total que se está dividiendo.
+        :param medio: Desde donde se está pagando.
+        :param colegiacion: Indica si debe pagarse la cuota de colegiación del mes
+        :param banco: La fuente que se va a utilizar para el pago es un
+                      :class:`Banco`
+        """
+        if banco:
+            clase_deduccion = DeduccionBancaria
+            cuota = self.get_bank_cuota(acreditacion)
+        else:
+            clase_deduccion = Deduced
+            cuota = self.get_cuota(acreditacion)
+        if colegiacion:
+            if monto >= cuota:
+                monto -= cuota
+                self.crear_deduccion(acreditacion, clase_deduccion,
+                                     cuenta_colegiacion, cuota, dia, medio)
+
+        for extra in self.extra_set.all():
+            if monto >= extra.amount:
+                monto -= extra.amount
+                self.crear_deduccion(acreditacion, clase_deduccion,
+                                     extra.account, extra.amount, dia, medio)
+
+        for loan in self.loan_set.all().order_by('start_date'):
+            pago = loan.get_payment()
+            if monto >= pago:
+                monto -= pago
+
+                loan.pagar(pago, _('Planilla'))
+                self.crear_deduccion(acreditacion, clase_deduccion,
+                                     cuenta_prestamo, monto, dia, medio)
+
+        if monto >= Zero:
+            self.crear_deduccion(acreditacion, clase_deduccion,
+                                 cuenta_excedente, monto, dia, medio)
+
+    def crear_deduccion(self, acreditacion, clase_deduccion, cuenta, cuota, dia,
+                        medio):
+        """
+        Creates the :class:`Deduced` or :class:`DeduccionBancaria`
+        :param acreditacion:
+        :param clase_deduccion:
+        :param cuenta:
+        :param cuota:
+        :param dia:
+        :param medio:
+        :return:
+        """
+        deduccion = clase_deduccion()
+        deduccion.affiliate = self
+        deduccion.amount = cuota
+        deduccion.set_fuente(medio)
+        deduccion.day = dia
+        deduccion.account = cuenta
+        deduccion.month = acreditacion.month
+        deduccion.year = acreditacion.year
+        deduccion.save()
+
+    def get_monthly(self, day=timezone.now().date(), bank=False,
+                    loan_only=False):
+
+        """Obtiene el pago mensual que debe efectuar el afiliado"""
+
+        if loan_only:
+            return self.get_prestamo()
+
+        extras = self.extra_set.aggregate(total=Sum('amount'))['total']
+
+        if extras is None:
+            extras = Zero
+
+        total = extras
+
+        if bank:
+            total += self.get_bank_cuota(day)
+            if self.cotizacion.bank_main:
+                total += self.get_prestamo()
+        else:
+            total += self.get_cuota(day)
+            total += self.get_prestamo()
+
+        return total
+
+    def get_prestamo(self):
+
+        loans = Zero
+        for loan in self.loan_set.all():
+            loans = loan.get_payment()
+            break
+
+        return loans
 
 
 class Alquiler(models.Model):
@@ -202,12 +319,14 @@ class AutoSeguro(models.Model, PeriodBased):
 
             elif self.affiliate.jubilated.year == self.year:
                 if month < self.affiliate.jubilated.month:
-                    amount_jubilated = obligation_map[self.year][month]['amount_compliment']
+                    amount_jubilated = obligation_map[self.year][month][
+                        'amount_compliment']
                     if amount_jubilated is not None:
                         amount += amount_jubilated
 
                 if month >= self.affiliate.jubilated.month:
-                    amount_jubilated = obligation_map[self.year][month]['compliment']
+                    amount_jubilated = obligation_map[self.year][month][
+                        'compliment']
                     if amount_jubilated is not None:
                         amount += amount_jubilated
 
@@ -446,6 +565,9 @@ class DeduccionBancaria(models.Model):
         managed = False
         db_table = 'deduccion_bancaria'
 
+    def set_fuente(self, fuente):
+        self.banco = fuente
+
 
 class Deduced(models.Model):
     affiliate = models.ForeignKey(Affiliate, blank=True, null=True)
@@ -459,6 +581,9 @@ class Deduced(models.Model):
     class Meta:
         managed = False
         db_table = 'deduced'
+
+    def set_fuente(self, fuente):
+        self.cotizacion = fuente
 
 
 class Deduction(models.Model):
@@ -667,10 +792,171 @@ class Loan(models.Model):
         return self.capital - self.deduced()
 
     def deduced(self):
-
         return self.deduction_set.aggregate(
-                total=Sum('amount')
+            total=Sum('amount')
         )['total']
+
+    def get_payment(self):
+
+        """Obtiene el cobro a efectuar del prestamo"""
+
+        if self.debt < self.payment and self.number != self.months - 1:
+            return self.debt
+
+        return self.payment
+
+    def pagar(self, amount, receipt, day=timezone.now().date(), libre=False,
+              remove=True, deposito=False, descripcion=None):
+
+        """Carga un nuevo pago para el préstamo
+
+        Dependiendo de si se marca como libre de intereses o no, calculará el
+        interés compuesto a pagar.
+
+        En caso de ingresar un pago mayor que la deuda actual del préstamo,
+        ingresará el sobrante como intereses y marcará el préstamo como
+        pagado.
+
+        :param amount:      El monto pagado
+        :param receipt:     Código del comprobante de pago
+        :param day:         Fecha en que se realiza el pago
+        :param libre:       Indica si el pago contabilizará intereses
+        :param remove:      Indica si el pago permitirá que el :class:`Loan`
+                            sea enviado a :class:`LoanPayed`
+        :param deposito:    Indica si el pago fue un deposito efectuado en banco
+        :param descripcion: Una descripción sobre la naturaleza del pago
+        """
+
+        # La cantidad a pagar es igual que la deuda del préstamo, por
+        # lo tanto se considera la ultima cuota y no se cargaran intereses
+        if self.debt == amount or libre:
+            interest = Zero
+            capital = amount
+
+        elif self.debt < amount:
+            interest = amount - self.debt
+            capital = amount - interest
+
+        else:
+            interest = (self.debt * self.interest / 1200).quantize(dot01)
+            # Calculate how much money was used to pay the capital
+            capital = amount - interest
+
+        # Registra cualquier cantidad mayor a los intereses
+
+        # Decrease debt by the amount of the payed capital
+        self.debt -= capital
+        self.last = day
+
+        self.number += 1
+        self.save()
+
+        # Register the payment in the database
+        pay = Pay(amount=amount, day=day, receipt=receipt, loan=self,
+                  deposito=deposito, description=descripcion, capital=capital,
+                  interest=interest)
+        pay.save()
+        # Increase the number of payments by one
+
+        if self.debt <= 0 and remove:
+            self.remove()
+            return True
+
+        self.compensar()
+
+        return False
+
+    def remove(self):
+
+        """Convierte un :class:`Loan` en un :class:`PayedLoan`"""
+
+        payed = PayedLoan(id=self.id, affiliate=self.affiliate,
+                          capital=self.capital, letters=self.letters,
+                          interest=self.interest, months=self.months,
+                          last=self.last, startDate=self.startDate,
+                          payment=self.payment, casa=self.casa)
+
+        payed.save()
+
+        for pay in self.pay_set.all():
+            old_pay = OldPay(payed_loan=payed, day=self.day,
+                             capital=self.capital, interest=self.interest,
+                             amount=self.amount, receipt=self.receipt,
+                             description=self.description)
+            old_pay.save()
+            pay.delete()
+
+        for deduction in self.deductions:
+            ded = PayedDeduction(payed_loan=payed, amount=self.amount,
+                                 account=self.account,
+                                 description=self.description)
+            ded.save()
+            deduction.delete()
+
+        self.delete()
+
+        return payed
+
+    def future(self):
+
+        """Calcula la manera en que se pagará el préstamo basado en los
+        intereses y los pagos actuales"""
+
+        debt = copy.copy(self.debt)
+        li = []
+        start = self.startDate.month + self.offset
+        if self.startDate.day == 24 and self.startDate.month == 8:
+            start += 1
+        year = self.startDate.year
+        n = 1
+        int_month = self.interest / 1200
+        while debt > 0:
+            kw = {'number': "{0}/{1}".format(n + self.number, self.months),
+                  'month': self.number + n + start, 'enum': self.number + n,
+                  'year': year}
+            # calcular el número de pago
+
+            # Normalizar Meses
+            while kw['month'] > 12:
+                kw['month'] -= 12
+                kw['year'] += 1
+
+            # colocar el mes y el año
+            kw['month'] = "{0} {1}".format(calendar.month_name[kw['month']],
+                                           kw['year'])
+            # calcular intereses
+            kw['interest'] = Decimal(debt * int_month).quantize(dot01)
+
+            if debt <= self.payment:
+                kw['amount'] = 0
+                kw['capital'] = debt
+                kw['payment'] = kw['interest'] + kw['capital']
+                li.append(kw)
+                break
+
+            kw['capital'] = self.payment - kw['interest']
+            debt = debt + kw['interest'] - self.payment
+            kw['amount'] = debt
+            kw['payment'] = kw['interest'] + kw['capital']
+            li.append(kw)
+            n += 1
+
+        return li
+
+    def compensar(self):
+
+        """Recalcula la deuda final utilizando el calculo de pagos futuros
+        para evitar perdidas por pagos finales menores a la cuota de préstamo
+        pero que deberian mantenerse en el valor de la cuota de préstamo"""
+
+        futuro = self.future()
+        if not futuro:
+            return
+
+        ultimo_pago = futuro[-1]['payment']
+        ultimo_mes = futuro[-1]['enum']
+        if ultimo_pago < self.payment and ultimo_mes == self.months:
+            self.debt += ((self.payment - ultimo_pago) * 2 / 3).quantize(dot01)
 
 
 class Logger(models.Model):
@@ -1188,14 +1474,14 @@ def build_obligation_map():
     for year in range(min_year, timezone.now().year + 1):
         obligation_map[year] = [
             Obligation.objects.filter(
-                    year=year,
-                    month=n
+                year=year,
+                month=n
             ).aggregate(
-                    active=Sum('amount'),
-                    retired=Sum('inprema'),
-                    compliment=Sum('inprema_compliment'),
-                    amount_compliment=Sum('amount_compliment'),
-                    alternate=Sum('alternate'),
+                active=Sum('amount'),
+                retired=Sum('inprema'),
+                compliment=Sum('inprema_compliment'),
+                amount_compliment=Sum('amount_compliment'),
+                alternate=Sum('alternate'),
             )
             for n in range(1, 13)
             ]
