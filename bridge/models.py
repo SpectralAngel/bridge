@@ -61,7 +61,7 @@ class Affiliate(models.Model):
     reason = models.CharField(max_length=50, blank=True, null=True)
     desactivacion = models.DateField(blank=True, null=True)
     muerte = models.DateField(blank=True, null=True)
-    banco = models.IntegerField(blank=True, null=True)
+    banco = models.ForeignKey('Banco', blank=True, null=True)
     cuenta = models.CharField(max_length=20, blank=True, null=True)
     departamento = models.ForeignKey('Departamento', blank=True, null=True)
     municipio = models.ForeignKey('Municipio', blank=True, null=True)
