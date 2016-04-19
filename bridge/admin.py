@@ -8,7 +8,7 @@ from bridge import models
 
 
 class BancoAdmin(admin.ModelAdmin):
-    list_display = ['nombre']
+    list_display = ['nombre', 'parser', 'generator']
 
 
 class BankReportAdmin(admin.ModelAdmin):
