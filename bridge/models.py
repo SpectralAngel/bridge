@@ -112,21 +112,21 @@ class Affiliate(models.Model):
         amount = Zero
 
         if self.cotizacion.normal:
-            amount = obligation_map[day.year][day.month]['active']
+            amount = obligation_map[day.year][day.month - 1]['active']
 
         if self.cotizacion.jubilados:
             if self.jubilated.year > self.year:
-                amount = obligation_map[day.year][day.month]['active']
+                amount = obligation_map[day.year][day.month - 1]['active']
             elif self.jubilated.year == day.year:
                 if day.month < self.jubilated.month:
-                    amount = obligation_map[day.year][day.month]['active']
+                    amount = obligation_map[day.year][day.month - 1]['active']
                 else:
-                    amount = obligation_map[self.year][day.month]['retired']
+                    amount = obligation_map[self.year][day.month - 1]['retired']
             elif self.jubilated.year < self.year:
-                amount = obligation_map[self.year][day.month]['retired']
+                amount = obligation_map[self.year][day.month - 1]['retired']
 
         if self.affiliate.cotizacion.alternate:
-            amount = obligation_map[day.year][day.month]['alternate']
+            amount = obligation_map[day.year][day.month - 1]['alternate']
 
         return amount
 
@@ -134,18 +134,18 @@ class Affiliate(models.Model):
 
         """Obtiene la cuota de aportación que el :class:`Affiliate` debera pagar
         en el mes actual"""
-        amount = obligation_map[day.year][day.month]['active']
+        amount = obligation_map[day.year][day.month - 1]['active']
         if self.cotizacion.bank_main:
             if self.cotizacion.jubilados:
-                amount = obligation_map[day.year][day.month]['compliment'] + \
-                         obligation_map[day.year][day.month]['retired']
+                amount = obligation_map[day.year][day.month - 1]['compliment'] + \
+                         obligation_map[day.year][day.month - 1]['retired']
 
         else:
             if self.cotizacion.jubilados:
-                amount = obligation_map[day.year][day.month]['compliment']
+                amount = obligation_map[day.year][day.month - 1]['compliment']
 
             if self.cotizacion.alternate:
-                amount = obligation_map[day.year][day.month][
+                amount = obligation_map[day.year][day.month - 1][
                     'amount_compliment']
 
         return amount
