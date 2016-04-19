@@ -145,7 +145,8 @@ class Affiliate(models.Model):
                 amount = obligation_map[day.year][day.month]['compliment']
 
             if self.cotizacion.alternate:
-                amount = obligation_map[day.year][day.month]['amount_compliment']
+                amount = obligation_map[day.year][day.month][
+                    'amount_compliment']
 
         return amount
 
@@ -250,6 +251,23 @@ class Affiliate(models.Model):
             break
 
         return loans
+
+    def get_email(self):
+
+        if self.email is not None:
+            return self.email
+
+        return ""
+
+    def get_phone(self):
+
+        if self.phone is not None:
+            phone = self.phone.replace('-', '').replace('/', '')
+            if len(phone) > 11:
+                return phone[:11]
+            return phone
+
+        return ""
 
 
 class Alquiler(models.Model):
