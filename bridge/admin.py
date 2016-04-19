@@ -7,6 +7,10 @@ from django import forms
 from bridge import models
 
 
+class BancoAdmin(admin.ModelAdmin):
+    list_display = ['nombre']
+
+
 class BankReportAdmin(admin.ModelAdmin):
     list_display = ['banco', 'year', 'month']
     ordering = ('year', 'month')
@@ -70,6 +74,7 @@ class DeduccionBancariaAdmin(admin.ModelAdmin):
     form = DeduccionBancariaAdminForm
 
 
+admin.site.register(models.Banco, BancoAdmin)
 admin.site.register(models.BankReport, BankReportAdmin)
 admin.site.register(models.BankAccount, BankAccountAdmin)
 admin.site.register(models.Obligation, ObligationAdmin)
