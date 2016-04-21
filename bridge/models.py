@@ -904,7 +904,7 @@ class Loan(models.Model):
             old_pay.save()
             pay.delete()
 
-        for deduction in self.deductions:
+        for deduction in self.deduction_set.all():
             ded = PayedDeduction(payed_loan=payed, amount=deduction.amount,
                                  account=deduction.account,
                                  description=deduction.description)
