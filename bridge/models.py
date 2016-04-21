@@ -183,7 +183,7 @@ class Affiliate(models.Model):
                 self.crear_deduccion(acreditacion, clase_deduccion,
                                      extra.account, extra.amount, dia, medio)
 
-        for loan in self.loan_set.all().order_by('start_date'):
+        for loan in self.loan_set.all():
             pago = loan.get_payment()
             if monto >= pago:
                 monto -= pago
@@ -805,6 +805,7 @@ class Loan(models.Model):
     class Meta:
         managed = False
         db_table = 'loan'
+        ordering = ['start_date']
 
     def net(self):
         return self.capital - self.deduced()
