@@ -6,7 +6,7 @@ from decimal import Decimal
 from django.utils import timezone
 
 Zero = Decimal()
-dot01 = Decimal(0.01)
+dot01 = Decimal('0.01')
 
 
 class PeriodBased(object):
