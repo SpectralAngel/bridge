@@ -192,7 +192,7 @@ class Affiliate(models.Model):
                 self.crear_deduccion(acreditacion, clase_deduccion,
                                      cuenta_prestamo, monto, dia, medio)
 
-        if monto >= Zero:
+        if monto > Zero:
             self.crear_deduccion(acreditacion, clase_deduccion,
                                  cuenta_excedente, monto, dia, medio)
 
