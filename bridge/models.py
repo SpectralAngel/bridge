@@ -897,17 +897,17 @@ class Loan(models.Model):
         payed.save()
 
         for pay in self.pay_set.all():
-            old_pay = OldPay(payed_loan=payed, day=self.day,
-                             capital=self.capital, interest=self.interest,
-                             amount=self.amount, receipt=self.receipt,
-                             description=self.description)
+            old_pay = OldPay(payed_loan=payed, day=pay.day,
+                             capital=pay.capital, interest=pay.interest,
+                             amount=pay.amount, receipt=pay.receipt,
+                             description=pay.description)
             old_pay.save()
             pay.delete()
 
         for deduction in self.deductions:
-            ded = PayedDeduction(payed_loan=payed, amount=self.amount,
-                                 account=self.account,
-                                 description=self.description)
+            ded = PayedDeduction(payed_loan=payed, amount=deduction.amount,
+                                 account=deduction.account,
+                                 description=deduction.description)
             ded.save()
             deduction.delete()
 
