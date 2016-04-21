@@ -892,7 +892,7 @@ class Loan(models.Model):
                           capital=self.capital, letters=self.letters,
                           interest=self.interest, months=self.months,
                           last=self.last, start_date=self.start_date,
-                          payment=self.payment, casa=self.casa)
+                          payment=self.payment, casa=self.casa, debt=self.debt)
 
         payed.save()
 
