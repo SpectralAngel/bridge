@@ -36,7 +36,7 @@ class Account(models.Model):
         db_table = 'account'
 
     def __str__(self):
-        return self.name
+        return _('{0} {1}').format(self.id, self.name)
 
 
 @python_2_unicode_compatible
@@ -210,6 +210,7 @@ class Affiliate(models.Model):
         """
         deduccion = clase_deduccion()
         deduccion.affiliate = self
+        deduccion.afiliado = self
         deduccion.amount = cuota
         deduccion.set_fuente(medio)
         deduccion.day = dia
