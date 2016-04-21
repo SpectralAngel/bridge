@@ -922,10 +922,10 @@ class Loan(models.Model):
 
         debt = copy.copy(self.debt)
         li = []
-        start = self.startDate.month + self.offset
-        if self.startDate.day == 24 and self.startDate.month == 8:
+        start = self.start_date.month + self.offset
+        if self.start_date.day == 24 and self.start_date.month == 8:
             start += 1
-        year = self.startDate.year
+        year = self.start_date.year
         n = 1
         int_month = self.interest / 1200
         while debt > 0:
