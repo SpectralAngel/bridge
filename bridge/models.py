@@ -25,6 +25,28 @@ from django.utils.translation import ugettext_lazy as _
 
 from bridge.utils import PeriodBased, Zero, dot01
 
+obligation_map = None
+
+
+def build_obligation_map():
+    global obligation_map
+    obligation_map = {}
+    min_year = Obligation.objects.aggregate(minimun=Min('year'))['minimun']
+    for year in range(min_year, timezone.now().year + 1):
+        obligation_map[year] = [
+            Obligation.objects.filter(
+                year=year,
+                month=n
+            ).aggregate(
+                active=Sum('amount'),
+                retired=Sum('inprema'),
+                compliment=Sum('inprema_compliment'),
+                amount_compliment=Sum('amount_compliment'),
+                alternate=Sum('alternate'),
+            )
+            for n in range(1, 13)
+            ]
+
 
 @python_2_unicode_compatible
 class Account(models.Model):
@@ -109,6 +131,9 @@ class Affiliate(models.Model):
         :param day:
         :return: the complete amount
         """
+        if obligation_map is None:
+            build_obligation_map()
+        
         amount = Zero
 
         if self.cotizacion.normal:
@@ -134,6 +159,9 @@ class Affiliate(models.Model):
 
         """Obtiene la cuota de aportación que el :class:`Affiliate` debera pagar
         en el mes actual"""
+        if obligation_map is None:
+            build_obligation_map()
+
         amount = obligation_map[day.year][day.month - 1]['active']
         if self.cotizacion.bank_main:
             if self.cotizacion.jubilados:
@@ -1482,26 +1510,3 @@ class VisitIdentity(models.Model):
     class Meta:
         managed = False
         db_table = 'visit_identity'
-
-
-obligation_map = None
-
-
-def build_obligation_map():
-    global obligation_map
-    obligation_map = {}
-    min_year = Obligation.objects.aggregate(minimun=Min('year'))['minimun']
-    for year in range(min_year, timezone.now().year + 1):
-        obligation_map[year] = [
-            Obligation.objects.filter(
-                year=year,
-                month=n
-            ).aggregate(
-                active=Sum('amount'),
-                retired=Sum('inprema'),
-                compliment=Sum('inprema_compliment'),
-                amount_compliment=Sum('amount_compliment'),
-                alternate=Sum('alternate'),
-            )
-            for n in range(1, 13)
-            ]
