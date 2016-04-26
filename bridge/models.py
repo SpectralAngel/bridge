@@ -140,7 +140,7 @@ class Affiliate(models.Model):
             amount = obligation_map[day.year][day.month - 1]['active']
 
         if self.cotizacion.jubilados:
-            if self.jubilated.year > self.year:
+            if self.jubilated.year > day.year:
                 amount = obligation_map[day.year][day.month - 1]['active']
             elif self.jubilated.year == day.year:
                 if day.month < self.jubilated.month:
