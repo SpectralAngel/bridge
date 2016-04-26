@@ -10,6 +10,12 @@ dot01 = Decimal('0.01')
 
 
 class PeriodBased(object):
+    def pagar_mes(self, mes):
+        setattr(self, 'month{0}'.format(mes), True)
+
+    def remover_mes(self, month):
+        setattr(self, 'month{0}'.format(month), False)
+
     def period(self, retrasada=False, gracia=False):
 
         (start, end) = (1, 13)

@@ -133,7 +133,7 @@ class Affiliate(models.Model):
         """
         if obligation_map is None:
             build_obligation_map()
-        
+
         amount = Zero
 
         if self.cotizacion.normal:
@@ -158,6 +158,36 @@ class Affiliate(models.Model):
 
         return amount
 
+    def obtenerAportaciones(self, year):
+        """
+        Gets the :class:`CuotaTable` associated to the year.
+        :param year: the year the user is looking for
+        :return: :class:`CuotaTable` or None
+        """
+        if year < self.joined.year:
+            return None
+        cuota = self.cuotatable_set.filter(year=year).first()
+        if cuota is None:
+            cuota = CuotaTable(affiliate=self, year=year)
+            cuota.save()
+
+        return cuota
+
+    def obtener_autoseguro(self, year):
+        """
+        Gets the :class:`AutoSeguro` associated to the year.
+        :param year: the year the user is looking for
+        :return: :class:`AutoSeguro` or None
+        """
+        if year < self.joined.year:
+            return None
+        cuota = self.autoseguro_set.filter(year=year).first()
+        if cuota is None:
+            cuota = AutoSeguro(affiliate=self, year=year)
+            cuota.save()
+
+        return cuota
+
     def get_bank_cuota(self, day=timezone.now()):
 
         """Obtiene la cuota de aportación que el :class:`Affiliate` debera pagar
@@ -181,6 +211,18 @@ class Affiliate(models.Model):
 
         return amount
 
+    def pagar_cuota(self, mes, anio):
+
+        self.obtenerAportaciones(anio).pagar_mes(mes)
+
+    def remover_cuota(self, year, month):
+
+        self.obtenerAportaciones(year).remove_month(month)
+
+    def pagar_complemento(self, year, month):
+
+        self.obtener_autoseguro(year).pagar_mes(month)
+
     def pagar(self, dia, acreditacion, monto, medio, cuenta_colegiacion=None,
               cuenta_prestamo=None, cuenta_excedente=None, colegiacion=True,
               banco=True):
@@ -196,6 +238,7 @@ class Affiliate(models.Model):
         :param banco: La fuente que se va a utilizar para el pago es un
                       :class:`Banco`
         """
+        self.last = monto
         if banco:
             clase_deduccion = DeduccionBancaria
             cuota = self.get_bank_cuota(acreditacion)
@@ -207,12 +250,23 @@ class Affiliate(models.Model):
                 monto -= cuota
                 self.crear_deduccion(acreditacion, clase_deduccion,
                                      cuenta_colegiacion, cuota, dia, medio)
+                if banco and self.cotizacion.jubilados or \
+                                banco and self.cotizacion.alternate:
+                    self.pagar_complemento(dia.year, dia.month)
+                else:
+                    self.pagar_cuota(dia.year, dia.month)
 
         for extra in self.extra_set.all():
             if monto >= extra.amount:
                 monto -= extra.amount
+                detalle = None
+                if extra.retrasada:
+                    self.pagar_cuota(extra.mes, extra.anio)
+                    detalle = _('Cuota Retrasada {0} de {1}').format(extra.mes,
+                                                                     extra.anio)
                 self.crear_deduccion(acreditacion, clase_deduccion,
-                                     extra.account, extra.amount, dia, medio)
+                                     extra.account, extra.amount, dia, medio,
+                                     detalle=detalle)
 
         for loan in self.loan_set.all():
             pago = loan.get_payment()
@@ -227,8 +281,10 @@ class Affiliate(models.Model):
             self.crear_deduccion(acreditacion, clase_deduccion,
                                  cuenta_excedente, monto, dia, medio)
 
+        self.save()
+
     def crear_deduccion(self, acreditacion, clase_deduccion, cuenta, cuota, dia,
-                        medio):
+                        medio, detalle=None):
         """
         Creates the :class:`Deduced` or :class:`DeduccionBancaria`
         :param acreditacion:
@@ -248,6 +304,7 @@ class Affiliate(models.Model):
         deduccion.account = cuenta
         deduccion.month = acreditacion.month
         deduccion.year = acreditacion.year
+        deduccion.detail = detalle
         deduccion.save()
 
     def get_monthly(self, day=timezone.now().date(), bank=False,
