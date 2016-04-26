@@ -213,15 +213,21 @@ class Affiliate(models.Model):
 
     def pagar_cuota(self, anio, mes):
 
-        self.obtenerAportaciones(anio).pagar_mes(mes)
+        colegiacion = self.obtenerAportaciones(anio)
+        colegiacion.pagar_mes(mes)
+        colegiacion.save()
 
     def remover_cuota(self, year, month):
 
-        self.obtenerAportaciones(year).remove_month(month)
+        colegiacion = self.obtenerAportaciones(year)
+        colegiacion.remove_month(month)
+        colegiacion.save()
 
     def pagar_complemento(self, year, month):
 
-        self.obtener_autoseguro(year).pagar_mes(month)
+        colegiacion = self.obtener_autoseguro(year)
+        colegiacion.pagar_mes(month)
+        colegiacion.save()
 
     def pagar(self, dia, acreditacion, monto, medio, cuenta_colegiacion=None,
               cuenta_prestamo=None, cuenta_excedente=None, colegiacion=True,
