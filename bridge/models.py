@@ -211,7 +211,7 @@ class Affiliate(models.Model):
 
         return amount
 
-    def pagar_cuota(self, mes, anio):
+    def pagar_cuota(self, anio, mes):
 
         self.obtenerAportaciones(anio).pagar_mes(mes)
 
