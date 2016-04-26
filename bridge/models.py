@@ -261,7 +261,7 @@ class Affiliate(models.Model):
                 monto -= extra.amount
                 detalle = None
                 if extra.retrasada and extra.mes and extra.anio:
-                    self.pagar_cuota(extra.mes, extra.anio)
+                    self.pagar_cuota(extra.anio, extra.mes)
                     detalle = _('Cuota Retrasada {0} de {1}').format(extra.mes,
                                                                      extra.anio)
                 self.crear_deduccion(acreditacion, clase_deduccion,
