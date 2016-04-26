@@ -211,6 +211,13 @@ class Affiliate(models.Model):
 
         return amount
 
+    def get_delayed(self):
+
+        for cuota in self.cuotaTables:
+            if cuota.delayed() != Zero:
+                return cuota
+        return None
+
     def pagar_cuota(self, anio, mes):
 
         colegiacion = self.obtenerAportaciones(anio)
