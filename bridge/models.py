@@ -251,7 +251,7 @@ class Affiliate(models.Model):
         deduccion.save()
 
     def get_monthly(self, day=timezone.now().date(), bank=False,
-                    loan_only=False):
+                    loan_only=False, cobrar_extras=True):
 
         """Obtiene el pago mensual que debe efectuar el afiliado"""
 
@@ -263,7 +263,10 @@ class Affiliate(models.Model):
         if extras is None:
             extras = Zero
 
-        total = extras
+        if cobrar_extras:
+            total = extras
+        else:
+            total = Zero
 
         if bank:
             total += self.get_bank_cuota(day)
