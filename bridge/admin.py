@@ -7,6 +7,11 @@ from django import forms
 from bridge import models
 
 
+class CotizacionAdmin(admin.ModelAdmin):
+    list_display = ['nombre', 'generator', 'jubilados', 'bank_main',
+                    'alternate', 'normal', 'ordering']
+
+
 class BancoAdmin(admin.ModelAdmin):
     list_display = ['nombre', 'parser', 'generator']
 
@@ -47,9 +52,9 @@ class DeducedAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request):
         return super(DeducedAdmin, self).get_queryset(request).select_related(
-                'affiliate',
-                'account',
-                'cotizacion'
+            'affiliate',
+            'account',
+            'cotizacion'
         )
 
 
@@ -66,11 +71,13 @@ class DeduccionBancariaAdmin(admin.ModelAdmin):
     ordering = ['afiliado_id', 'account_id', 'year', 'month']
 
     def get_queryset(self, request):
-        return super(DeduccionBancariaAdmin, self).get_queryset(request).select_related(
-                'afiliado',
-                'account',
-                'banco'
+        return super(DeduccionBancariaAdmin, self).get_queryset(
+            request).select_related(
+            'afiliado',
+            'account',
+            'banco'
         )
+
     form = DeduccionBancariaAdminForm
 
 
@@ -80,3 +87,4 @@ admin.site.register(models.BankAccount, BankAccountAdmin)
 admin.site.register(models.Obligation, ObligationAdmin)
 admin.site.register(models.Deduced, DeducedAdmin)
 admin.site.register(models.DeduccionBancaria, DeduccionBancariaAdmin)
+admin.site.register(models.Cotizacion, CotizacionAdmin)
