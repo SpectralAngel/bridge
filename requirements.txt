@@ -1,1 +1,3 @@
 Django
+django-extensions
+django-crispy-forms

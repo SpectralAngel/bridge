@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}{% load i18n %}{% load l10n %}
+{% block content %}
+    <div class="row">
+        <div class="col-md-12 col-xs-12">‏
+            <form method="post">{% csrf_token %}
+                <fieldset>
+                    <legend>{% trans '¿Esta Seguro de Borrar la Deducci&oacute;n Bancaria?' %}</legend>
+                    <a class="btn btn-success"
+                       href="javascript:back();">{% trans 'No' %}</a>
+                    <input class="btn btn-danger" type="submit"
+                           value="{% trans 'S&iacute;' %}">
+                </fieldset>
+            </form>
+        </div>
+        </section>
+    </div>
+{% endblock %}
