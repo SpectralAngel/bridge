@@ -34,7 +34,10 @@
                         <td>{{ deduccion.detail }}</td>
                         <td>{{ deduccion.amount }}</td>
                         <td>
-                            <a href="{% url 'bridge-affiliate-deduccion-bancaria-delete' deduccion.id %}">
+                            <a class="btn btn-success" href="{% url 'bridge-affiliate-deduccion-bancaria-edit' deduccion.id %}">
+                                {% trans 'Editar' %}
+                            </a>
+                            <a class="btn btn-danger" href="{% url 'bridge-affiliate-deduccion-bancaria-delete' deduccion.id %}">
                                 {% trans 'Eliminar' %}
                             </a>
                         </td>

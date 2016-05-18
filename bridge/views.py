@@ -5,9 +5,10 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.urlresolvers import reverse
 from django.shortcuts import get_object_or_404
 from django.views.generic.base import ContextMixin, View
-from django.views.generic.edit import FormMixin, DeleteView
+from django.views.generic.edit import FormMixin, DeleteView, UpdateView
 from django.views.generic.list import ListView
 
+from bridge.forms import DeduccionBancariaForm
 from bridge.models import Affiliate, DeduccionBancaria
 
 
@@ -66,3 +67,11 @@ class DeduccionBancariaDeleteView(LoginRequiredMixin, DeleteView):
             'bridge-affiliate-deduccion-bancaria',
             args=[self.affiliate.id]
         )
+
+
+class DeduccionBancariaUpdateView(LoginRequiredMixin, UpdateView):
+    """
+    Allows editing :class:`DeduccionBancaria` from the UI
+    """
+    model = DeduccionBancaria
+    form_class = DeduccionBancariaForm

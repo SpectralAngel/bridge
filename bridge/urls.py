@@ -13,4 +13,8 @@ urlpatterns = [
     url(r'^deducciones/banco/(?P<pk>\d+)/delete$',
         views.DeduccionBancariaDeleteView.as_view(),
         name='bridge-affiliate-deduccion-bancaria-delete'),
+
+    url(r'^deducciones/banco/(?P<pk>\d+)/edit$',
+        views.DeduccionBancariaUpdateView.as_view(),
+        name='bridge-affiliate-deduccion-bancaria-edit'),
 ]
