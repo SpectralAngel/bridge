@@ -63,8 +63,9 @@ class DeduccionBancariaForm(AfiliadoFormMixin):
         model = DeduccionBancaria
         fields = '__all__'
 
-    fecha = forms.DateField(widget=DateTimePicker(
-        options={"format": "YYYY-MM-DD"})
+    day = forms.DateField(widget=DateTimePicker(
+        options={"format": "YYYY-MM-DD"}),
+        label=_('Fecha')
     )
 
     def __init__(self, *args, **kwargs):
