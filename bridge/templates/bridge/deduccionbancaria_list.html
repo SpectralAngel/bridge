@@ -9,6 +9,38 @@
         </div>
     </div>
     <div class="row">
-
+        <div class="col-md-12 col-xs-12">
+            <table class="table table-striped table-hover">
+                <thead>
+                <tr>
+                    <th>{% trans 'Cuenta' %}</th>
+                    <th>{% trans 'Banco' %}</th>
+                    <th>{% trans 'Mes' %}</th>
+                    <th>{% trans 'A&ntilde;o' %}</th>
+                    <th>{% trans 'Fecha' %}</th>
+                    <th>{% trans 'Detalle' %}</th>
+                    <th>{% trans 'Monto' %}</th>
+                    <td>{% trans 'Acciones' %}</td>
+                </tr>
+                </thead>
+                <tbody>
+                {% for deduccion in object_list %}
+                    <tr>
+                        <td>{{ deduccion.account }}</td>
+                        <td>{{ deduccion.banco }}</td>
+                        <td>{{ deduccion.month }}</td>
+                        <td>{{ deduccion.year }}</td>
+                        <td>{{ deduccion.day }}</td>
+                        <td>{{ deduccion.detail }}</td>
+                        <td>
+                            <a href="{% url 'bridge-affiliate-deduccion-bancaria-delete' deduccion.id %}">
+                                {% trans 'Eliminar' %}
+                            </a>
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
     </div>
 {% endblock %}
