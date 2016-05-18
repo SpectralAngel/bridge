@@ -6,7 +6,7 @@ from django.conf.urls import url
 from bridge import views
 
 urlpatterns = [
-    url(r'^deducciones/banco/(?P<affiliate>\d+)/$',
+    url(r'^deducciones/banco/(?P<affiliate>\d+)$',
         views.DeduccionBancariaAffiliateListView.as_view(),
         name='bridge-affiliate-deduccion-bancaria'),
 
