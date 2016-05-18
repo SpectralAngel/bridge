@@ -32,6 +32,7 @@
                         <td>{{ deduccion.year }}</td>
                         <td>{{ deduccion.day }}</td>
                         <td>{{ deduccion.detail }}</td>
+                        <td>{{ deduccion.amount }}</td>
                         <td>
                             <a href="{% url 'bridge-affiliate-deduccion-bancaria-delete' deduccion.id %}">
                                 {% trans 'Eliminar' %}
