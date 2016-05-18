@@ -70,6 +70,4 @@ class DeduccionBancariaForm(AfiliadoFormMixin):
 
     def __init__(self, *args, **kwargs):
         super(DeduccionBancariaForm, self).__init__(*args, **kwargs)
-        self.helper.add_input(
-            Submit('submit', _('Formulario de Deduccion Bancaria'))
-        )
+        self.set_legend(_('Formulario de Deduccion Bancaria'))
