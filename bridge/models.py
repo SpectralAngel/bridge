@@ -632,19 +632,19 @@ class CuentaRetrasada(models.Model):
 
 class CuotaTable(models.Model, PeriodBased):
     affiliate = models.ForeignKey(Affiliate)
-    year = models.IntegerField()
-    month1 = models.IntegerField()
-    month2 = models.IntegerField()
-    month3 = models.IntegerField()
-    month4 = models.IntegerField()
-    month5 = models.IntegerField()
-    month6 = models.IntegerField()
-    month7 = models.IntegerField()
-    month8 = models.IntegerField()
-    month9 = models.IntegerField()
-    month10 = models.IntegerField()
-    month11 = models.IntegerField()
-    month12 = models.IntegerField()
+    year = models.IntegerField(default=0)
+    month1 = models.IntegerField(default=0)
+    month2 = models.IntegerField(default=0)
+    month3 = models.IntegerField(default=0)
+    month4 = models.IntegerField(default=0)
+    month5 = models.IntegerField(default=0)
+    month6 = models.IntegerField(default=0)
+    month7 = models.IntegerField(default=0)
+    month8 = models.IntegerField(default=0)
+    month9 = models.IntegerField(default=0)
+    month10 = models.IntegerField(default=0)
+    month11 = models.IntegerField(default=0)
+    month12 = models.IntegerField(default=0)
 
     def calculate_amount(self, month):
         """
