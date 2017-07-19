@@ -269,6 +269,15 @@ class Affiliate(models.Model):
                 else:
                     self.pagar_cuota(dia.year, dia.month)
 
+        for loan in self.loan_set.all():
+            pago = loan.get_payment()
+            if monto >= pago:
+                monto -= pago
+
+                loan.pagar(pago, _('Planilla'))
+                self.crear_deduccion(acreditacion, clase_deduccion,
+                                     cuenta_prestamo, pago, dia, medio)
+
         for extra in self.extra_set.all():
             if monto >= extra.amount:
                 monto -= extra.amount
@@ -280,15 +289,6 @@ class Affiliate(models.Model):
                 self.crear_deduccion(acreditacion, clase_deduccion,
                                      extra.account, extra.amount, dia, medio,
                                      detalle=detalle)
-
-        for loan in self.loan_set.all():
-            pago = loan.get_payment()
-            if monto >= pago:
-                monto -= pago
-
-                loan.pagar(pago, _('Planilla'))
-                self.crear_deduccion(acreditacion, clase_deduccion,
-                                     cuenta_prestamo, pago, dia, medio)
 
         if monto > Zero:
             self.crear_deduccion(acreditacion, clase_deduccion,
