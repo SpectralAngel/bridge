@@ -274,7 +274,7 @@ class Affiliate(models.Model):
             if monto >= pago:
                 monto -= pago
 
-                loan.pagar(pago, _('Planilla'))
+                loan.pagar(pago, _('Planilla'), dia)
                 self.crear_deduccion(acreditacion, clase_deduccion,
                                      cuenta_prestamo, pago, dia, medio)
 
