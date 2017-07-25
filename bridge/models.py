@@ -630,6 +630,7 @@ class CuentaRetrasada(models.Model):
         unique_together = (('anio', 'mes'),)
 
 
+@python_2_unicode_compatible
 class CuotaTable(models.Model, PeriodBased):
     affiliate = models.ForeignKey(Affiliate)
     year = models.IntegerField(default=0)
@@ -645,6 +646,10 @@ class CuotaTable(models.Model, PeriodBased):
     month10 = models.IntegerField(default=0)
     month11 = models.IntegerField(default=0)
     month12 = models.IntegerField(default=0)
+
+    def __str__(self):
+
+        return '{0}'.format(self.year)
 
     def calculate_amount(self, month):
         """
