@@ -213,7 +213,7 @@ class Affiliate(models.Model):
 
     def get_delayed(self):
 
-        for cuota in self.cuotaTables:
+        for cuota in self.cuotatable_set.all():
             if cuota.delayed() != Zero:
                 return cuota
         return None
