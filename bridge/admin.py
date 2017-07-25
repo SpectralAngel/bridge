@@ -81,6 +81,18 @@ class DeduccionBancariaAdmin(admin.ModelAdmin):
     form = DeduccionBancariaAdminForm
 
 
+class CuentaRetrasadaAdmin(admin.ModelAdmin):
+    list_display = ['account', 'mes', 'anio', ]
+    search_fields = ['anio', ]
+    ordering = ['anio', 'month']
+
+    def get_queryset(self, request):
+        return super(CuentaRetrasadaAdmin, self).get_queryset(
+            request).select_related(
+            'account',
+        )
+
+
 admin.site.register(models.Banco, BancoAdmin)
 admin.site.register(models.BankReport, BankReportAdmin)
 admin.site.register(models.BankAccount, BankAccountAdmin)
@@ -88,3 +100,4 @@ admin.site.register(models.Obligation, ObligationAdmin)
 admin.site.register(models.Deduced, DeducedAdmin)
 admin.site.register(models.DeduccionBancaria, DeduccionBancariaAdmin)
 admin.site.register(models.Cotizacion, CotizacionAdmin)
+admin.site.register(models.CuentaRetrasada, CuentaRetrasadaAdmin)
