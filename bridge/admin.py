@@ -84,7 +84,7 @@ class DeduccionBancariaAdmin(admin.ModelAdmin):
 class CuentaRetrasadaAdmin(admin.ModelAdmin):
     list_display = ['account', 'mes', 'anio', ]
     search_fields = ['anio', ]
-    ordering = ['anio', 'month']
+    ordering = ['anio', 'mes']
 
     def get_queryset(self, request):
         return super(CuentaRetrasadaAdmin, self).get_queryset(
