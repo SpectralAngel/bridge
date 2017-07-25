@@ -25,12 +25,10 @@ from django.utils.translation import ugettext_lazy as _
 
 from bridge.utils import PeriodBased, Zero, dot01
 
-obligation_map = None
+obligation_map = {}
 
 
 def build_obligation_map():
-    global obligation_map
-    obligation_map = {}
     min_year = Obligation.objects.aggregate(minimun=Min('year'))['minimun']
     for year in range(min_year, timezone.now().year + 1):
         obligation_map[year] = [
@@ -45,7 +43,7 @@ def build_obligation_map():
                 alternate=Sum('alternate'),
             )
             for n in range(1, 13)
-            ]
+        ]
 
 
 @python_2_unicode_compatible
