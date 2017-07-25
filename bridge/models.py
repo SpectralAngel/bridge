@@ -660,9 +660,7 @@ class CuotaTable(models.Model, PeriodBased):
         amount = Zero
 
         if self.affiliate.cotizacion.normal:
-            found_year = obligation_map[self.year]
-            found_month = found_year[month]
-            amount = found_month['active']
+            amount = obligation_map[self.year][month]['active']
 
         if self.affiliate.cotizacion.jubilados:
             if self.affiliate.jubilated.year > self.year:
